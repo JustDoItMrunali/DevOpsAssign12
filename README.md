@@ -1,3 +1,6 @@
+<img width="1470" height="920" alt="Screenshot 2025-10-25 at 9 45 08 PM" src="https://github.com/user-attachments/assets/4539e1ed-a3c9-48fc-a2d8-c6fbfbf2e685" />
+<img width="1470" height="920" alt="Screenshot 2025-10-25 at 9 45 22 PM" src="https://github.com/user-attachments/assets/cb460f30-9464-4977-a766-3d6fefcd4523" />
+<img width="1444" height="827" alt="Screenshot 2025-10-25 at 9 45 29 PM" src="https://github.com/user-attachments/assets/06d264dc-4d4b-4e88-ad54-10ed40fef4f1" />
 
 DevOps_Assignment/
 ├── terraform/           # Infrastructure as Code
@@ -67,7 +70,7 @@ docker stack deploy -c docker/docker-compose.yml myapp
 
 - **Django Admin**: Username: admin, Password: admin
 - **PostgreSQL**: Username: postgres, Password: postgres_password
-- **Test User**: Username: ITA771, Password: 2022PE0000
+- **Test User**: Username: ITA745, Password: 2022PE0366
 
 ### Infrastructure
 
