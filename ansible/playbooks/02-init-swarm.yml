@@ -1,0 +1,43 @@
+---
+- name: Initialize Docker Swarm on Manager
+  hosts: swarm_manager
+  become: yes
+
+  tasks:
+    - name: Initialize Swarm
+      command: docker swarm init --advertise-addr {{ ansible_host }}
+      register: swarm_init
+      changed_when: "'Swarm initialized' in swarm_init.stdout"
+
+    - name: Get worker join token
+      command: docker swarm join-token -q worker
+      register: swarm_token
+      changed_when: false
+
+    - name: Copy token to tmp
+      copy:
+        content: "{{ swarm_token.stdout }}"
+        dest: "/tmp/swarm_token.txt"
+      delegate_to: localhost
+      become: no
+
+---
+- name: Join Workers to Swarm
+  hosts: swarm_workers
+  become: yes
+
+  tasks:
+    - name: Wait for manager
+      pause:
+        seconds: 5
+
+    - name: Read join token
+      set_fact:
+        swarm_token: "{{ lookup('file', '/tmp/swarm_token.txt') }}"
+      delegate_to: localhost
+      become: no
+
+    - name: Join Swarm
+      command: "docker swarm join --token {{ swarm_token }} {{ hostvars['manager']['ansible_host'] }}:2377"
+      register: worker_join
+      changed_when: "'joined' in worker_join.stdout"

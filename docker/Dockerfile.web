@@ -1,0 +1,15 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Copy requirements first
+COPY django_app/requirements.txt /app/
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the full Django project
+COPY django_app /app
+
+EXPOSE 8000
+
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "itb745_django.wsgi:application"]

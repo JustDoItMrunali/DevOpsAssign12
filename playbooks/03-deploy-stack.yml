@@ -1,0 +1,13 @@
+---
+- name: Deploy Docker stack
+  hosts: swarm_manager
+  become: yes
+  tasks:
+    - name: Copy docker-compose file
+      copy:
+        src: ~/ansible/docker-compose.yml
+        dest: /tmp/docker-compose.yml
+
+    - name: Deploy stack
+      shell: docker stack deploy -c /tmp/docker-compose.yml my_stack
+

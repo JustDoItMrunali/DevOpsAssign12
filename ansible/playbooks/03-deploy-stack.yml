@@ -1,0 +1,36 @@
+---
+- name: Deploy Docker Stack
+  hosts: swarm_manager
+  gather_facts: no
+
+  tasks:
+    - name: Create app directory
+      file:
+        path: /opt/app
+        state: directory
+      become: yes
+
+    - name: Copy docker-compose file
+      copy:
+        src: ../../docker/docker-compose.yml
+        dest: /opt/app/docker-compose.yml
+      become: yes
+
+    - name: Deploy stack
+      command: docker stack deploy -c /opt/app/docker-compose.yml myapp
+      become: yes
+      register: stack_deploy
+
+    - name: Wait for services
+      pause:
+        seconds: 10
+
+    - name: List services
+      command: docker service ls
+      become: yes
+      register: services
+      changed_when: false
+
+    - name: Show services
+      debug:
+        msg: "{{ services.stdout_lines }}"

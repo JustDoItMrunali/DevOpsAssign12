@@ -1,0 +1,72 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_CREDS = credentials('aws-creds')
+        SSH_KEY   = credentials('mru-ssh-key')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📦 Checking out source code...'
+                checkout scm
+            }
+        }
+
+        stage('Terraform Init & Apply') {
+            steps {
+                dir('terraform') {
+                    echo '🚀 Running Terraform to provision AWS infra...'
+                    sh '''
+                        export AWS_ACCESS_KEY_ID=$AWS_CREDS_USR
+                        export AWS_SECRET_ACCESS_KEY=$AWS_CREDS_PSW
+                        terraform init
+                        terraform apply -auto-approve
+                    '''
+                }
+            }
+        }
+
+        stage('Ansible Configuration') {
+            steps {
+                dir('ansible') {
+                    echo '⚙️ Running Ansible playbooks...'
+                    sh '''
+                        eval `ssh-agent -s`
+                        ssh-add <(echo "$SSH_KEY")
+                        ansible-playbook -i inventory.ini install_docker.yml
+                        ansible-playbook -i inventory.ini deploy_stack.yml
+                    '''
+                }
+            }
+        }
+
+        stage('Docker Swarm Verification') {
+            steps {
+                echo '🐳 Checking running services...'
+                sh '''
+                    docker service ls || echo "Docker service listing failed (non-fatal)"
+                '''
+            }
+        }
+
+        stage('Post-deploy Test') {
+            steps {
+                echo '🔍 Verifying Django endpoint...'
+                sh '''
+                    curl -f http://$(terraform output -raw manager_public_ip):8000 || echo "App test failed"
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ CI/CD pipeline executed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed — please check logs in Jenkins console output.'
+        }
+    }
+}

@@ -1,0 +1,26 @@
+---
+- name: Build and deploy Django + PostgreSQL stack on Docker Swarm
+  hosts: manager
+  become: yes
+
+  tasks:
+    - name: Copy docker-compose.yml to manager
+      copy:
+        src: ../docker/docker-compose.yml
+        dest: /home/ubuntu/docker-compose.yml
+
+    - name: Sync entire docker folder (includes db/web)
+      synchronize:
+        src: ../docker/
+        dest: /home/ubuntu/docker/
+        recursive: yes
+
+    - name: Build Docker images
+      shell: |
+        cd /home/ubuntu/docker/web && docker build -t itb745-django:latest .
+        cd /home/ubuntu/docker/db && docker build -t itb745-postgres:latest .
+
+    - name: Deploy stack on Swarm
+      shell: |
+        cd /home/ubuntu/docker
+        docker stack deploy -c docker-compose.yml itb745_stack
